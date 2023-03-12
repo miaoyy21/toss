@@ -5,24 +5,11 @@ import (
 	"fmt"
 )
 
-type Schema byte
-
-func (o Schema) Byte() byte {
-	if o == SchemaPositive || o == SchemaNegative {
-		return byte(o)
-	}
-
-	panic(fmt.Sprintf("unreachable Schema of %q", string(o)))
-}
-
-var SchemaPositive Schema = 'P'
-var SchemaNegative Schema = 'N'
-
 type Toss struct {
-	rows    []int
-	records []Schema
+	rows    []int    // 比如掷骰子的历史记录 [4,3,2,2,2,1,2,3,4,6,6,6,5,5]
+	records []Schema // 存放模式转换后的记录集
 
-	pattern func(int) Schema
+	pattern func(int) Schema // 模式转换方法
 }
 
 // NewToss rows: 数据的历史记录，越靠前代表离现在越近
@@ -82,4 +69,8 @@ func (o *Toss) String() string {
 
 	buf.WriteByte('\n')
 	return buf.String()
+}
+
+func (o *Toss) Guess() Schema {
+	return o.guess()
 }
