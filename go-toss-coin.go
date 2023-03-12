@@ -2,6 +2,14 @@ package go_toss_coin
 
 import "fmt"
 
-func Func() {
-	fmt.Println("Hello, this is go_toss_coin")
+func Func0() {
+	fmt.Println("Hello, this is go_toss_coin Func0")
+}
+
+func Func1() {
+	fmt.Println("Hello, this is go_toss_coin Func1")
+}
+
+func Func2() {
+	fmt.Println("Hello, this is go_toss_coin Func2")
 }
