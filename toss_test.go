@@ -1,58 +1,60 @@
 package toss
 
 import (
-	"regexp"
 	"testing"
 )
 
-type Patterna struct {
-	name string
-	expr string
+type testTossData struct {
+	rows    []int
+	pattern func(i int) Schema
 
-	example string
+	row    int
+	expect Schema
 }
 
-var patterns = []Patterna{
+var testTossMap = []testTossData{
 	{
-		name:    "以AB交替循环出现的次数至少大于4次",
-		expr:    "^(AB){4,}",
-		example: "ABABABAB",
+		rows:    []int{0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1},
+		pattern: oddEven,
+
+		row:    1,
+		expect: SchemaPositive,
 	},
 	{
-		name:    "以ABB交替循环出现的次数至少大于4次",
-		expr:    "^(AB{2}){4,}",
-		example: "ABBABBABBAB",
+		rows:    []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		pattern: oddEven,
+
+		row:    0,
+		expect: SchemaPositive,
+	},
+	{
+		rows:    []int{0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1},
+		pattern: oddEven,
+
+		row:    0,
+		expect: SchemaNegative,
 	},
 }
 
-func TestFunc0(t *testing.T) {
-	for _, pattern := range patterns {
-		isMatched, err := regexp.MatchString(pattern.expr, pattern.example)
-		if err != nil {
-			t.Fatalf("【%s】: %s\n", pattern.name, err.Error())
-		}
-
-		t.Logf("【%s】: Regexp %q Matched %q is %t\n", pattern.name, pattern.expr, pattern.example, isMatched)
+func oddEven(i int) Schema {
+	if i%2 == 1 {
+		return SchemaPositive
 	}
 
-	re, err := regexp.Compile("(A)+")
-	if err != nil {
-		t.Fatalf("Compile() failure : %s", err.Error())
-	}
+	return SchemaNegative
+}
 
-	t.Logf("re.FindAllString() %s", re.FindAllString("AAAABAAB", -1))
+func TestToss(t *testing.T) {
+	for i, xs := range testTossMap {
+		toss := NewToss(xs.rows, xs.pattern)
+		toss.Add(xs.row)
 
-	rows := []int{14, 13, 3, 13, 23, 22, 14, 16, 17, 13, 22, 11, 9, 6, 4, 15, 3, 4, 15, 15, 16}
-	toss := NewToss(rows, func(i int) Schema {
-		if i%2 == 1 {
-			return SchemaPositive
+		t.Logf("%s", toss)
+		schema := toss.Guess()
+		if schema == xs.expect {
+			t.Logf("[%02d] Guess %q Successful ...", i+1, schema)
+		} else {
+			t.Fatalf("[%02d] Guess NOT PASSED, want %q but got %q", i+1, xs.expect, schema)
 		}
-
-		return SchemaNegative
-	})
-
-	toss.Add(15)
-
-	t.Log(toss)
-	t.Log(toss.Guess())
+	}
 }

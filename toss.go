@@ -67,7 +67,6 @@ func (o *Toss) String() string {
 		buf.WriteString(fmt.Sprintf("%2s", string(record)))
 	}
 
-	buf.WriteByte('\n')
 	return buf.String()
 }
 

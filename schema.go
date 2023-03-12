@@ -2,13 +2,26 @@ package toss
 
 import "fmt"
 
-var SchemaPositive Schema = 'P'
-var SchemaNegative Schema = 'N'
+var (
+	SchemaInvalid  Schema = '-'
+	SchemaPositive Schema = 'P'
+	SchemaNegative Schema = 'N'
+)
 
 type Schema byte
 
+func (o Schema) Not() Schema {
+	if o == SchemaPositive {
+		return SchemaNegative
+	} else if o == SchemaNegative {
+		return SchemaPositive
+	}
+
+	panic(fmt.Sprintf("unreachable Schema of %q", string(o)))
+}
+
 func (o Schema) Byte() byte {
-	if o == SchemaPositive || o == SchemaNegative {
+	if o == SchemaInvalid || o == SchemaPositive || o == SchemaNegative {
 		return byte(o)
 	}
 
@@ -16,7 +29,7 @@ func (o Schema) Byte() byte {
 }
 
 func (o Schema) String() string {
-	if o == SchemaPositive || o == SchemaNegative {
+	if o == SchemaInvalid || o == SchemaPositive || o == SchemaNegative {
 		return string(o)
 	}
 
