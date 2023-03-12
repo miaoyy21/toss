@@ -1,3 +1,3 @@
-module github.com/miaoyy21/go-toss-coin
+module github.com/miaoyy21/toss
 
 go 1.19

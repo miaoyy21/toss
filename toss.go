@@ -1,4 +1,4 @@
-package go_toss_coin
+package toss
 
 import "fmt"
 
