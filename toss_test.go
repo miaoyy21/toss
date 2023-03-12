@@ -34,6 +34,13 @@ var testTossMap = []testTossData{
 		row:    0,
 		expect: SchemaNegative,
 	},
+	{
+		rows:    []int{0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1},
+		pattern: oddEven,
+
+		row:    1,
+		expect: SchemaPositive,
+	},
 }
 
 func oddEven(i int) Schema {

@@ -1,7 +1,6 @@
 package toss
 
 import (
-	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
@@ -20,15 +19,9 @@ func size(s string, schema Schema) int {
 	return max
 }
 
-func (o *Toss) guess() Schema {
-	buf := new(bytes.Buffer)
-	for _, record := range o.records {
-		buf.WriteByte(record.Byte())
-	}
-
-	// P{n1}N{n2}模式
-	ss := buf.String()
-	pMax, nMax := size(ss, SchemaPositive), size(ss, SchemaNegative)
+// neg: 是否开启反向竞猜
+func guess(s string, neg bool) Schema {
+	pMax, nMax := size(s, SchemaPositive), size(s, SchemaNegative)
 
 	for p := pMax; p >= 0; p-- {
 		for n := nMax; n >= 0; n-- {
@@ -41,7 +34,7 @@ func (o *Toss) guess() Schema {
 			}
 
 			xn := repetitions(p, n)
-			if strings.HasPrefix(ss, SchemaPositive.String()) {
+			if strings.HasPrefix(s, SchemaPositive.String()) {
 				n0 = fmt.Sprintf("%s%s", strings.Repeat("P", p), strings.Repeat("N", n))
 				expr = fmt.Sprintf("^(P{%d}N{%d}){%d,}", p, n, xn)
 			} else {
@@ -49,12 +42,12 @@ func (o *Toss) guess() Schema {
 				expr = fmt.Sprintf("^(N{%d}P{%d}){%d,}", n, p, xn)
 			}
 
-			s0 := regexp.MustCompile(expr).FindString(ss)
+			s0 := regexp.MustCompile(expr).FindString(s)
 			if len(s0) > 0 {
 				fmt.Printf("Pattern of %q matched %q: Prefer more than %d, and %d found.\n", n0, s0, xn, len(s0)/len(n0))
 
 				schema := SchemaPositive
-				if strings.HasPrefix(ss, SchemaNegative.String()) {
+				if strings.HasPrefix(s, SchemaNegative.String()) {
 					schema = SchemaNegative
 				}
 
@@ -64,6 +57,21 @@ func (o *Toss) guess() Schema {
 
 				return schema
 			}
+		}
+	}
+
+	// 反向竞猜
+	if neg {
+		fmt.Printf("Negation %q Guess.\n", SchemaPositive)
+		s1 := fmt.Sprintf("%s%s", SchemaPositive, s)
+		if guess(s1, false) != SchemaInvalid {
+			return SchemaNegative
+		}
+
+		fmt.Printf("Negation %q Guess.\n", SchemaNegative)
+		s2 := fmt.Sprintf("%s%s", SchemaNegative, s)
+		if guess(s2, false) != SchemaInvalid {
+			return SchemaPositive
 		}
 	}
 

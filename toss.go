@@ -71,5 +71,10 @@ func (o *Toss) String() string {
 }
 
 func (o *Toss) Guess() Schema {
-	return o.guess()
+	buf := new(bytes.Buffer)
+	for _, record := range o.records {
+		buf.WriteByte(record.Byte())
+	}
+
+	return guess(buf.String(), true)
 }
