@@ -10,7 +10,7 @@ var (
 
 type Schema byte
 
-func (o Schema) Not() Schema {
+func (o Schema) Reverse() Schema {
 	if o == SchemaPositive {
 		return SchemaNegative
 	} else if o == SchemaNegative {

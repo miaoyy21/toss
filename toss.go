@@ -44,7 +44,6 @@ func (o *Toss) Add(row int) {
 
 func (o *Toss) String() string {
 	buf := new(bytes.Buffer)
-	buf.WriteByte('\n')
 
 	// 数据记录
 	buf.WriteString("  数据记录: ")
@@ -71,6 +70,10 @@ func (o *Toss) String() string {
 }
 
 func (o *Toss) Guess() Schema {
+	if len(o.records) < 1 {
+		panic("unreachable")
+	}
+
 	buf := new(bytes.Buffer)
 	for _, record := range o.records {
 		buf.WriteByte(record.Byte())

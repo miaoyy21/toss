@@ -23,6 +23,7 @@ func size(s string, schema Schema) int {
 func guess(s string, neg bool) Schema {
 	pMax, nMax := size(s, SchemaPositive), size(s, SchemaNegative)
 
+	// P{p}N{n}: 其中 p + n !=0
 	for p := pMax; p >= 0; p-- {
 		for n := nMax; n >= 0; n-- {
 			var expr string
@@ -34,12 +35,14 @@ func guess(s string, neg bool) Schema {
 			}
 
 			xn := repetitions(p, n)
+			expr = fmt.Sprintf("^(%s{%d}%s{%d}){%d,}", SchemaPositive, p, SchemaNegative, n, xn)
+
 			if strings.HasPrefix(s, SchemaPositive.String()) {
-				n0 = fmt.Sprintf("%s%s", strings.Repeat("P", p), strings.Repeat("N", n))
-				expr = fmt.Sprintf("^(P{%d}N{%d}){%d,}", p, n, xn)
+				n0 = fmt.Sprintf("%s%s", strings.Repeat(string(SchemaPositive), p), strings.Repeat(string(SchemaNegative), n))
+				expr = fmt.Sprintf("^(%s{%d}%s{%d}){%d,}", SchemaPositive, p, SchemaNegative, n, xn)
 			} else {
-				n0 = fmt.Sprintf("%s%s", strings.Repeat("N", n), strings.Repeat("P", p))
-				expr = fmt.Sprintf("^(N{%d}P{%d}){%d,}", n, p, xn)
+				n0 = fmt.Sprintf("%s%s", strings.Repeat(string(SchemaNegative), n), strings.Repeat(string(SchemaPositive), p))
+				expr = fmt.Sprintf("^(%s{%d}%s{%d}){%d,}", SchemaNegative, n, SchemaPositive, p, xn)
 			}
 
 			s0 := regexp.MustCompile(expr).FindString(s)
@@ -52,10 +55,26 @@ func guess(s string, neg bool) Schema {
 				}
 
 				if p == 0 || n == 0 {
-					return schema.Not()
+					return schema.Reverse()
 				}
 
 				return schema
+			}
+		}
+	}
+
+	if !neg {
+		var expr string
+
+		// P{p}N{n}: 其中 p >= 2 && n >= 2 && p1 != p2... && n1 != n2...
+		expect := 3
+		expr = fmt.Sprintf("^(%s{2,}%s{2,}){%d,}", Schema(s[0]), Schema(s[0]).Reverse(), expect)
+		s0 := regexp.MustCompile(expr).FindString(s)
+		if len(s0) > 0 {
+			if s0[0] == s0[1] {
+				n0 := strings.Count(s0, fmt.Sprintf("%s%s", Schema(s[0]), Schema(s[0]).Reverse()))
+				fmt.Printf("Pattern of %s{2+}%s{2+} matched %q: Prefer more than %d, and %d found.\n", Schema(s[0]), Schema(s[0]).Reverse(), s0, expect, n0)
+				return Schema(s[0]).Reverse()
 			}
 		}
 	}
