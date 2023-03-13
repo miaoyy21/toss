@@ -24,18 +24,18 @@ func repetitions(p int, n int) int {
 		case 3:
 			return 2
 		case 2:
-			return 3
+			return 2
 		case 1:
-			return 3
+			return 2
 		}
 	case min > 0 && max == 3:
 		switch min {
 		case 3:
 			return 2
 		case 2:
-			return 3
+			return 2
 		case 1:
-			return 3
+			return 2
 		}
 	case min > 0 && max == 2:
 		switch min {
@@ -45,10 +45,10 @@ func repetitions(p int, n int) int {
 			return 3
 		}
 	case min > 0 && max == 1:
-		return 4
+		return 3
 	default:
-		return 9
+		return 6
 	}
 
-	return 10
+	return 99
 }

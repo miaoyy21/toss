@@ -50,12 +50,8 @@ func guess(s string, neg bool) Schema {
 				fmt.Printf("Pattern of %q matched %q: Prefer more than %d, and %d found.\n", n0, s0, xn, len(s0)/len(n0))
 
 				schema := SchemaPositive
-				if strings.HasPrefix(s, SchemaNegative.String()) {
+				if strings.HasSuffix(n0, SchemaNegative.String()) {
 					schema = SchemaNegative
-				}
-
-				if p == 0 || n == 0 {
-					return schema.Reverse()
 				}
 
 				return schema
@@ -67,30 +63,30 @@ func guess(s string, neg bool) Schema {
 		var expr string
 
 		// P{p}N{n}: 其中 p >= 2 && n >= 2 && p1 != p2... && n1 != n2...
-		expect := 3
+		expect := 2
 		expr = fmt.Sprintf("^(%s{2,}%s{2,}){%d,}", Schema(s[0]), Schema(s[0]).Reverse(), expect)
 		s0 := regexp.MustCompile(expr).FindString(s)
 		if len(s0) > 0 {
 			if s0[0] == s0[1] {
 				n0 := strings.Count(s0, fmt.Sprintf("%s%s", Schema(s[0]), Schema(s[0]).Reverse()))
 				fmt.Printf("Pattern of %s{2+}%s{2+} matched %q: Prefer more than %d, and %d found.\n", Schema(s[0]), Schema(s[0]).Reverse(), s0, expect, n0)
-				return Schema(s[0]).Reverse()
+				return Schema(s0[0])
 			}
 		}
 	}
 
 	// 反向竞猜
 	if neg {
-		fmt.Printf("Negation %q Guess.\n", SchemaPositive)
+		fmt.Printf("Negation %q Guess...\n", SchemaPositive)
 		s1 := fmt.Sprintf("%s%s", SchemaPositive, s)
-		if guess(s1, false) != SchemaInvalid {
-			return SchemaNegative
+		if schema := guess(s1, false); schema != SchemaInvalid {
+			return schema
 		}
 
-		fmt.Printf("Negation %q Guess.\n", SchemaNegative)
+		fmt.Printf("Negation %q Guess...\n", SchemaNegative)
 		s2 := fmt.Sprintf("%s%s", SchemaNegative, s)
-		if guess(s2, false) != SchemaInvalid {
-			return SchemaPositive
+		if schema := guess(s2, false); schema != SchemaInvalid {
+			return schema
 		}
 	}
 

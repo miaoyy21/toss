@@ -19,35 +19,35 @@ var testTossMap = []testTossData{
 		pattern: oddEven,
 
 		row:    1,
-		expect: SchemaPositive,
+		expect: SchemaNegative,
 	},
 	{
 		rows:    []int{0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		pattern: oddEven,
 
 		row:    0,
-		expect: SchemaPositive,
+		expect: SchemaNegative,
 	},
 	{
 		rows:    []int{0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1},
 		pattern: oddEven,
 
 		row:    0,
-		expect: SchemaNegative,
+		expect: SchemaPositive,
 	},
 	{
-		rows:    []int{0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1},
+		rows:    []int{0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1},
 		pattern: oddEven,
 
 		row:    1,
-		expect: SchemaPositive,
+		expect: SchemaNegative,
 	},
 	{
 		rows:    []int{1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1},
 		pattern: oddEven,
 
 		row:    0,
-		expect: SchemaPositive,
+		expect: SchemaNegative,
 	},
 }
 
@@ -67,9 +67,9 @@ func TestToss(t *testing.T) {
 		fmt.Printf("%s\n", toss)
 		schema := toss.Guess()
 		if schema == xs.expect {
-			fmt.Printf("[%02d] Guess %q Successful ...\n", i+1, schema)
+			fmt.Printf("[%02d] Guess %q Successful. [✓]\n", i+1, schema)
 		} else {
-			t.Fatalf("[%02d] Guess NOT PASSED, want %q but got %q", i+1, xs.expect, schema)
+			t.Fatalf("[%02d] Guess NOT PASSED, want %q but got %q. [×]\n", i+1, xs.expect, schema)
 		}
 	}
 }
