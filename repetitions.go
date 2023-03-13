@@ -16,24 +16,24 @@ func repetitions(p int, n int) int {
 	// 期望最少次数
 	switch {
 	case min > 0 && max >= 5:
-		return 2
+		return 3
 	case min > 0 && max == 4:
 		switch min {
 		case 4:
-			return 2
+			return 4
 		case 3:
-			return 2
+			return 4
 		case 2:
-			return 2
+			return 3
 		case 1:
-			return 2
+			return 3
 		}
 	case min > 0 && max == 3:
 		switch min {
 		case 3:
-			return 2
+			return 3
 		case 2:
-			return 2
+			return 3
 		case 1:
 			return 2
 		}
