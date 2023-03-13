@@ -45,9 +45,9 @@ func repetitions(p int, n int) int {
 			return 3
 		}
 	case min > 0 && max == 1:
-		return 3
+		return 4
 	default:
-		return 6
+		return 8
 	}
 
 	return 99

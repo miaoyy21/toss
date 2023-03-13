@@ -42,6 +42,17 @@ func (o *Toss) Add(row int) {
 	o.records = records
 }
 
+func (o *Toss) ResetPattern(pattern func(int) Schema) {
+	records := make([]Schema, 0, len(o.records))
+
+	for _, row := range o.rows {
+		records = append(records, pattern(row))
+	}
+
+	o.records = records
+	o.pattern = pattern
+}
+
 func (o *Toss) String() string {
 	buf := new(bytes.Buffer)
 

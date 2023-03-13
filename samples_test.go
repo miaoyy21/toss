@@ -40,22 +40,22 @@ func rowsFn(name string) []int {
 
 func TestToss_Guess(t *testing.T) {
 	rows := rowsFn("samples.json")
-	fmt.Printf("历史数据共计 %d 条\n", len(rows))
+	fmt.Printf("样本的历史数据共计 %d 条\n", len(rows))
 
 	// 单双
-	//pattern := oddEven
+	p1 := oddEven
 
 	// 大小
-	//pattern := func(i int) Schema {
-	//	if i >= 14 {
-	//		return SchemaPositive
-	//	}
-	//
-	//	return SchemaNegative
-	//}
+	p2 := func(i int) Schema {
+		if i >= 14 {
+			return SchemaPositive
+		}
+
+		return SchemaNegative
+	}
 
 	// 尾数
-	pattern := func(i int) Schema {
+	p3 := func(i int) Schema {
 		if i%10 >= 5 {
 			return SchemaPositive
 		}
@@ -63,29 +63,96 @@ func TestToss_Guess(t *testing.T) {
 		return SchemaNegative
 	}
 
-	toss := NewToss(rows, pattern)
+	// 靠中
+	p4 := func(i int) Schema {
+		if i >= 11 && i <= 16 {
+			return SchemaPositive
+		}
 
-	// 开始猜测检查
-	ns := rowsFn("samples_next.json")
+		return SchemaNegative
+	}
 
-	var dn, ok int
+	// 自定义
+	p5 := func(i int) Schema {
+		if i == 1 || i == 2 || i == 3 || i == 5 || i == 8 ||
+			i == 10 || i == 12 || i == 14 || i == 17 || i == 19 ||
+			i == 20 || i == 21 || i == 23 || i == 24 || i == 25 || i == 27 {
+			return SchemaPositive
+		}
+
+		return SchemaNegative
+	}
+
+	var dn, ok, nx0, nxx int
+
+	capacity := 100
+	toss := NewToss(rows[len(rows)-capacity:], p1)
+	ns := rows[:len(rows)-capacity]
+
 	for i := len(ns) - 1; i >= 0; i-- {
-		log.Printf("开始 [第%d次] 猜测 ...... \n%s\n", len(ns)-i, toss)
+		toss.ResetPattern(p1)
+		log.Printf("开始 [第%d次] 1.单双模式 猜测 ...... \n%s\n", len(ns)-i, toss)
 		schema := toss.Guess()
 
+		var result Schema
+
 		// 猜测结果
-		toss.Add(ns[i])
 		if schema == SchemaInvalid {
-			continue
+			toss.ResetPattern(p2)
+			log.Printf("开始 [第%d次] 2.大小模式 猜测 ...... \n%s\n", len(ns)-i, toss)
+
+			schema = toss.Guess()
+			if schema == SchemaInvalid {
+				toss.ResetPattern(p3)
+				log.Printf("开始 [第%d次] 3.大小尾数模式 猜测 ...... \n%s\n", len(ns)-i, toss)
+
+				schema = toss.Guess()
+				if schema == SchemaInvalid {
+					toss.ResetPattern(p4)
+					log.Printf("开始 [第%d次] 4.靠中模式 猜测 ...... \n%s\n", len(ns)-i, toss)
+
+					schema = toss.Guess()
+					if schema == SchemaInvalid {
+						toss.ResetPattern(p5)
+						log.Printf("开始 [第%d次] 5.自定义模式 猜测 ...... \n%s\n", len(ns)-i, toss)
+
+						schema = toss.Guess()
+						if schema == SchemaInvalid {
+							toss.Add(ns[i])
+							continue
+						} else {
+							result = p5(ns[i])
+						}
+					} else {
+						result = p4(ns[i])
+					}
+				} else {
+					result = p3(ns[i])
+				}
+			} else {
+				result = p2(ns[i])
+			}
+		} else {
+			result = p1(ns[i])
 		}
 
 		dn++
-		result := pattern(ns[i])
 		if result == schema {
 			ok++
+			log.Printf("开始 [第%d次] 猜测正确 [✓]\n", len(ns)-i)
+
+			if nx0 > nxx {
+				nxx = nx0
+			}
+			nx0 = 0
+		} else {
+			nx0++
+			log.Printf("开始 [第%d次] 猜测错误 [×]\n", len(ns)-i)
 		}
+
+		toss.Add(ns[i])
 	}
 
 	log.Printf("猜测结果：测试样本量[ %d ] 猜测次数[ %d ] 猜测正确[ %d ] \n", len(ns), dn, ok)
-	log.Printf("猜测结算：正确率[ %.2f%% ] 收益率[ %.2f ]\n", float64(ok*100)/float64(dn), float64(2*ok-dn)/float64(dn))
+	log.Printf("猜测结算：正确率[ %.2f%% ] 最大连错次数[ %d ] 收益率[ %.2f ]\n", float64(ok*100)/float64(dn), nxx, float64(2*ok-dn)/float64(dn))
 }
