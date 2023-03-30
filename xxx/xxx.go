@@ -18,8 +18,8 @@ func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	isRate = false // 是否开启多倍投注
-	power := 10    // 投注倍率：目标中奖金额为投注倍率*1000
+	isRate = true // 是否开启多倍投注
+	power := 10   // 投注倍率：目标中奖金额为投注倍率*1000
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
