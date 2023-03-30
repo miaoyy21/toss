@@ -16,8 +16,8 @@ func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	decision := 1.1
-	power := 40 // 投注倍率：目标中奖金额为投注倍率*1000
+	decision := 1.25
+	power := 50 // 投注倍率：目标中奖金额为投注倍率*1000
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
@@ -68,7 +68,7 @@ func Run() error {
 	}
 	issue = nowIssue
 
-	spaces, target := make(map[int]int), make([]int, 0)
+	spaces := make(map[int]int)
 	for index, item := range hisResponse.Data.Items {
 		result, err := strconv.Atoi(item.Result)
 		if err != nil {
@@ -83,23 +83,26 @@ func Run() error {
 		spaces[result] = index + 1
 	}
 
-	// 开奖较频繁的结果
-	var price float64
-	for result, space := range spaces {
-		if int(decision*float64(standard[result])) > space {
-			target = append(target, result)
-			price = price + float64(1000)/float64(standard[result])
-		}
-	}
-	sort.Ints(target)
-
 	iNextIssue, err := strconv.Atoi(nowIssue)
 	if err != nil {
 		return err
 	}
-
 	nextIssue := strconv.Itoa(iNextIssue + 1)
-	log.Printf("下期开奖期数【%s】，覆盖率【%.2f%%】，即将投注 %v ...\n", nextIssue, price/10, target)
+
+	// 开奖较频繁的结果，如果大于2/3，那么再进行一次或两次退化
+	target, price := make([]int, 0), 1000.0
+	target, price = getTarget(spaces, decision)
+	if price >= 667 {
+		log.Printf("下期开奖期数【%s】，预测中奖率【%.2f%%】，第一次退化 ...\n", nextIssue, price/10)
+		target, price = getTarget(spaces, decision*0.9)
+		if price >= 667 {
+			log.Printf("下期开奖期数【%s】，预测中奖率【%.2f%%】，第二次退化 ...\n", nextIssue, price/10)
+			target, price = getTarget(spaces, decision*0.9*0.9)
+		}
+	}
+	sort.Ints(target)
+
+	log.Printf("下期开奖期数【%s】，预测中奖率【%.2f%%】，即将投注 %v ...\n", nextIssue, price/10, target)
 
 	var total int
 	bets = make(map[string]struct{}) // 清空前一次投注结果
@@ -134,4 +137,17 @@ func Run() error {
 	log.Printf("下期开奖期数【%s】，投入 %d，押注成功 >>>>>>>>>> \n", nextIssue, total)
 
 	return nil
+}
+
+func getTarget(spaces map[int]int, decision float64) ([]int, float64) {
+	var price float64
+	target := make([]int, 0)
+	for result, space := range spaces {
+		if int(decision*float64(standard[result])) > space {
+			target = append(target, result)
+			price = price + float64(1000)/float64(standard[result])
+		}
+	}
+
+	return target, price
 }
