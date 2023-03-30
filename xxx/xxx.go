@@ -146,11 +146,11 @@ func getTarget(spaces map[int]int) ([]int, float64) {
 
 	target, price := make([]int, 0), 0.0
 	for _, newSpace := range newSpaces {
-		price = price + float64(1000)/float64(standard[newSpace.Result])
-		if price > 500 {
+		if price+float64(1000)/float64(standard[newSpace.Result]) >= 550 {
 			break
 		}
 
+		price = price + float64(1000)/float64(standard[newSpace.Result])
 		target = append(target, newSpace.Result)
 	}
 
