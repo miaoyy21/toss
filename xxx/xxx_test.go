@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestXXX(t *testing.T) {
+func TestRun(t *testing.T) {
 	ticker := time.NewTicker(30 * time.Second)
 	for {
 		select {
