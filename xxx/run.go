@@ -21,7 +21,7 @@ func Run() error {
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
-		PageSize: 200,
+		PageSize: 1000,
 		PType:    "3",
 		Unix:     unix,
 		KeyCode:  code,
