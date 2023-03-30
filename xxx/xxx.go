@@ -12,12 +12,14 @@ import (
 var issue string
 var bets = make(map[string]struct{})
 var rate float64
+var isRate bool
 
 func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	power := 10 // 投注倍率：目标中奖金额为投注倍率*1000
+	isRate = false // 是否开启多倍投注
+	power := 10    // 投注倍率：目标中奖金额为投注倍率*1000
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
@@ -68,13 +70,19 @@ func Run() error {
 		log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%d】 ...\n", nowIssue, res, gold)
 	} else {
 		if _, ok := bets[res]; ok {
-			rate = rate / 1.5
-			if rate < 1.0 {
-				rate = 1.0
+			if isRate {
+				rate = rate / 1.5
+				if rate < 1.0 {
+					rate = 1.0
+				}
 			}
+
 			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%d】，已中奖 [✓]...\n", nowIssue, res, gold)
 		} else {
-			rate = rate * 1.5
+			if isRate {
+				rate = rate * 1.5
+			}
+
 			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%d】，没有中奖 [×]...\n", nowIssue, res, gold)
 		}
 	}
