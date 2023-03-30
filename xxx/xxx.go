@@ -16,12 +16,11 @@ func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	decision := 1.25
-	power := 50 // 投注倍率：目标中奖金额为投注倍率*1000
+	power := 20 // 投注倍率：目标中奖金额为投注倍率*1000
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
-		PageSize: 1000,
+		PageSize: 500,
 		PType:    "3",
 		Unix:     unix,
 		KeyCode:  code,
@@ -91,15 +90,7 @@ func Run() error {
 
 	// 开奖较频繁的结果，如果大于2/3，那么再进行一次或两次退化
 	target, price := make([]int, 0), 1000.0
-	target, price = getTarget(spaces, decision)
-	if price >= 667 {
-		log.Printf("下期开奖期数【%s】，预测中奖率【%.2f%%】，第一次退化 ...\n", nextIssue, price/10)
-		target, price = getTarget(spaces, decision*0.9)
-		if price >= 667 {
-			log.Printf("下期开奖期数【%s】，预测中奖率【%.2f%%】，第二次退化 ...\n", nextIssue, price/10)
-			target, price = getTarget(spaces, decision*0.9*0.9)
-		}
-	}
+	target, price = getTarget(spaces)
 	sort.Ints(target)
 
 	log.Printf("下期开奖期数【%s】，预测中奖率【%.2f%%】，即将投注 %v ...\n", nextIssue, price/10, target)
@@ -139,14 +130,28 @@ func Run() error {
 	return nil
 }
 
-func getTarget(spaces map[int]int, decision float64) ([]int, float64) {
-	var price float64
-	target := make([]int, 0)
+func getTarget(spaces map[int]int) ([]int, float64) {
+	type Space struct {
+		Result int
+		Space  int
+	}
+
+	newSpaces := make([]Space, 0, len(spaces))
 	for result, space := range spaces {
-		if int(decision*float64(standard[result])) > space {
-			target = append(target, result)
-			price = price + float64(1000)/float64(standard[result])
+		newSpaces = append(newSpaces, Space{Result: result, Space: space})
+	}
+	sort.Slice(newSpaces, func(i, j int) bool {
+		return float64(newSpaces[i].Space)/float64(standard[newSpaces[i].Result]) < float64(newSpaces[j].Space)/float64(standard[newSpaces[j].Result])
+	})
+
+	target, price := make([]int, 0), 0.0
+	for _, newSpace := range newSpaces {
+		price = price + float64(1000)/float64(standard[newSpace.Result])
+		if price > 500 {
+			break
 		}
+
+		target = append(target, newSpace.Result)
 	}
 
 	return target, price
