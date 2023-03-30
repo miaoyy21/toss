@@ -11,12 +11,13 @@ import (
 
 var issue string
 var bets = make(map[string]struct{})
+var rate float64
 
 func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	power := 20 // 投注倍率：目标中奖金额为投注倍率*1000
+	power := 5 // 投注倍率：目标中奖金额为投注倍率*1000
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
@@ -63,11 +64,17 @@ func Run() error {
 	// 开奖结果
 	res := hisResponse.Data.Items[0].Result
 	if len(bets) == 0 {
+		rate = 1.0
 		log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】 ...\n", nowIssue, res, gold)
 	} else {
 		if _, ok := bets[res]; ok {
+			rate = rate / 2.0
+			if rate < 1.0 {
+				rate = 1.0
+			}
 			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】，已中奖 [✓]...\n", nowIssue, res, gold)
 		} else {
+			rate = rate * 1.5
 			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】，没有中奖 [×]...\n", nowIssue, res, gold)
 		}
 	}
@@ -104,7 +111,7 @@ func Run() error {
 	var total int
 	bets = make(map[string]struct{}) // 清空前一次投注结果
 	for _, result := range target {
-		gold := int(float64(1000*power) / float64(standard[result]))
+		gold := int(float64(1000*power) * rate / float64(standard[result]))
 
 		betRequest := XBetRequest{
 			Issue:    nextIssue,
