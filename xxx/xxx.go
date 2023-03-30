@@ -17,7 +17,7 @@ func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	power := 5 // 投注倍率：目标中奖金额为投注倍率*1000
+	power := 10 // 投注倍率：目标中奖金额为投注倍率*1000
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
@@ -65,17 +65,17 @@ func Run() error {
 	res := hisResponse.Data.Items[0].Result
 	if len(bets) == 0 {
 		rate = 1.0
-		log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】 ...\n", nowIssue, res, gold)
+		log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%d】 ...\n", nowIssue, res, gold)
 	} else {
 		if _, ok := bets[res]; ok {
-			rate = rate / 2.0
+			rate = rate / 1.5
 			if rate < 1.0 {
 				rate = 1.0
 			}
-			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】，已中奖 [✓]...\n", nowIssue, res, gold)
+			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%d】，已中奖 [✓]...\n", nowIssue, res, gold)
 		} else {
 			rate = rate * 1.5
-			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】，没有中奖 [×]...\n", nowIssue, res, gold)
+			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%d】，没有中奖 [×]...\n", nowIssue, res, gold)
 		}
 	}
 	issue = nowIssue
@@ -138,7 +138,7 @@ func Run() error {
 		total = total + gold
 		bets[strconv.Itoa(result)] = struct{}{}
 	}
-	log.Printf("下期开奖期数【%s】，押注金额【%d】，押注成功 >>>>>>>>>> \n", nextIssue, total)
+	log.Printf("下期开奖期数【%s】，押注金额【%d】，剩余金额【%d】，押注成功 >>>>>>>>>> \n", nextIssue, total, gold-total)
 
 	return nil
 }
@@ -187,7 +187,7 @@ type UserBaseResponse struct {
 	Msg string `json:"msg"`
 }
 
-func getGold(unix string, code string, device string, id string, token string) (gold string, err error) {
+func getGold(unix string, code string, device string, id string, token string) (gold int, err error) {
 	userBaseRequest := UserBaseRequest{
 		Unix:     unix,
 		KeyCode:  code,
@@ -210,5 +210,11 @@ func getGold(unix string, code string, device string, id string, token string) (
 		return gold, fmt.Errorf("查询用户信息存在错误返回：(%d) %s", userBaseResponse.Status, userBaseResponse.Msg)
 	}
 
-	return userBaseResponse.Data.GoldEggs, nil
+	sGold := strings.ReplaceAll(userBaseResponse.Data.GoldEggs, ",", "")
+	iGold, err := strconv.Atoi(sGold)
+	if err != nil {
+		return gold, err
+	}
+
+	return iGold, nil
 }
