@@ -15,7 +15,7 @@ func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	decision := 0.75
+	decision := 0.8
 
 	log.Printf("开始执行查询历史记录 ...\n")
 
@@ -51,7 +51,7 @@ func Run() error {
 	// 最新开奖期数
 	nowIssue := hisResponse.Data.Items[0].Issue
 	if strings.EqualFold(nowIssue, issue) {
-		log.Printf("最新开奖期数%q,还没到开奖时间，等待下次执行 ...\n", nowIssue)
+		log.Printf("本期开奖期数%q,还没到开奖时间，等待下次执行 ...\n", nowIssue)
 		return nil
 	}
 
@@ -88,7 +88,7 @@ func Run() error {
 	}
 
 	nextIssue := strconv.Itoa(iNextIssue + 1)
-	log.Printf("开奖期数%q,即将投注 %#v，覆盖率 %.2f%%...\n", nextIssue, target, price/10)
+	log.Printf("下期开奖期数%q，即将投注 %#v，覆盖率 %.2f%%...\n", nextIssue, target, price/10)
 
 	var total int
 	for _, result := range target {
@@ -109,16 +109,16 @@ func Run() error {
 		var betResponse XBet
 		err := execute("GET", "http://manorapp.pceggs.com/IFS/Manor28/Manor28_Betting_1.ashx", betRequest, &betResponse)
 		if err != nil {
-			return fmt.Errorf("执行押注[%d]，出现错误：%s", result, err.Error())
+			return fmt.Errorf("下期开奖期数%q，执行押注[%d]，出现错误：%s", nextIssue, result, err.Error())
 		}
 
 		if betResponse.Status != 0 {
-			return fmt.Errorf("执行押注[%d]，服务器返回错误信息：%s", result, err.Error())
+			return fmt.Errorf("下期开奖期数%q，执行押注[%d]，服务器返回错误信息：%s", nextIssue, result, betResponse.Msg)
 		}
 
 		total = total + gold
 	}
-	log.Printf("执行押注成功，累计投入 %d >>>>>>>>>> \n", total)
+	log.Printf("下期开奖期数%q，投入 %d，押注成功 >>>>>>>>>> \n", nextIssue, total)
 
 	return nil
 }
