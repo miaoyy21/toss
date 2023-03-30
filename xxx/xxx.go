@@ -54,15 +54,21 @@ func Run() error {
 		return nil
 	}
 
+	// 获取用户剩余金额
+	gold, err := getGold(unix, code, device, id, token)
+	if err != nil {
+		return err
+	}
+
 	// 开奖结果
 	res := hisResponse.Data.Items[0].Result
 	if len(bets) == 0 {
-		log.Printf("本期开奖期数【%s】，开奖结果【%s】 ...\n", nowIssue, res)
+		log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】 ...\n", nowIssue, res, gold)
 	} else {
 		if _, ok := bets[res]; ok {
-			log.Printf("本期开奖期数【%s】，开奖结果【%s】，已中奖 [✓]...\n", nowIssue, res)
+			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】，已中奖 [✓]...\n", nowIssue, res, gold)
 		} else {
-			log.Printf("本期开奖期数【%s】，开奖结果【%s】，没有中奖 [×]...\n", nowIssue, res)
+			log.Printf("本期开奖期数【%s】，开奖结果【%s】，剩余金额【%s】，没有中奖 [×]...\n", nowIssue, res, gold)
 		}
 	}
 	issue = nowIssue
@@ -125,7 +131,7 @@ func Run() error {
 		total = total + gold
 		bets[strconv.Itoa(result)] = struct{}{}
 	}
-	log.Printf("下期开奖期数【%s】，投入 %d，押注成功 >>>>>>>>>> \n", nextIssue, total)
+	log.Printf("下期开奖期数【%s】，押注金额【%d】，押注成功 >>>>>>>>>> \n", nextIssue, total)
 
 	return nil
 }
@@ -155,4 +161,47 @@ func getTarget(spaces map[int]int) ([]int, float64) {
 	}
 
 	return target, price
+}
+
+type UserBaseRequest struct {
+	Unix     string `json:"unix"`
+	KeyCode  string `json:"keycode"`
+	PType    string `json:"ptype"`
+	DeviceId string `json:"deviceid"`
+	UserId   string `json:"userid"`
+	Token    string `json:"token"`
+}
+
+type UserBaseResponse struct {
+	Status int `json:"status"`
+	Data   struct {
+		GoldEggs string `json:"goldeggs"`
+	} `json:"data"`
+	Msg string `json:"msg"`
+}
+
+func getGold(unix string, code string, device string, id string, token string) (gold string, err error) {
+	userBaseRequest := UserBaseRequest{
+		Unix:     unix,
+		KeyCode:  code,
+		PType:    "3",
+		DeviceId: device,
+		UserId:   id,
+		Token:    token,
+	}
+
+	var userBaseResponse UserBaseResponse
+
+	// 执行查询开奖历史
+	err = execute("GET", "http://manorapp.pceggs.com/IFS/Manor28/Manor28_UserBase.ashx", userBaseRequest, &userBaseResponse)
+	if err != nil {
+		return
+	}
+
+	// 开奖历史是否存在错误
+	if userBaseResponse.Status != 0 {
+		return gold, fmt.Errorf("查询用户信息存在错误返回：(%d) %s", userBaseResponse.Status, userBaseResponse.Msg)
+	}
+
+	return userBaseResponse.Data.GoldEggs, nil
 }
