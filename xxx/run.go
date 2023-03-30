@@ -15,7 +15,7 @@ func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	decision := 0.8
+	decision := 0.75
 
 	log.Printf("开始执行查询历史记录 ...\n")
 

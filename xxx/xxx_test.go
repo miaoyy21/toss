@@ -7,7 +7,7 @@ import (
 )
 
 func TestXXX(t *testing.T) {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(20 * time.Second)
 	for {
 		select {
 		case <-ticker.C:
