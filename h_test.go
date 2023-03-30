@@ -11,13 +11,13 @@ import (
 
 func TestNewToss(t *testing.T) {
 	buf1 := new(bytes.Buffer)
-	buf1.WriteString(`{"pagesize":200,"unix":"1680167809","keycode":"88dbe73b904997d0c866b9682c704ba0","ptype":"3","deviceid":"0E6EE3CC-8184-4CD7-B163-50AE8AD4516F","userid":"31591499","token":"cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"}`)
+	buf1.WriteString(`{"pagesize":200,"unix":"1680169318","keycode":"565ccb85c94dd987826e8c3bc37b1528","ptype":"3","deviceid":"0E6EE3CC-8184-4CD7-B163-50AE8AD4516F","userid":"31591499","token":"cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"}`)
 
 	t.Logf("Execute Get ...\n")
 	do("GET", "http://manorapp.pceggs.com/IFS/Manor28/Manor28_Analyse_History.ashx", buf1)
 
 	buf2 := new(bytes.Buffer)
-	buf2.WriteString(`{"issue":"1654790","totalgoldeggs":5000,"numbers":11,"unix":"1680169318","keycode":"565ccb85c94dd987826e8c3bc37b1528","ptype":"3","deviceid":"0E6EE3CC-8184-4CD7-B163-50AE8AD4516F","userid":"31591499","token":"cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"}`)
+	buf2.WriteString(`{"issue":"1654944","totalgoldeggs":5000,"numbers":11,"unix":"1680169318","keycode":"565ccb85c94dd987826e8c3bc37b1528","ptype":"3","deviceid":"0E6EE3CC-8184-4CD7-B163-50AE8AD4516F","userid":"31591499","token":"cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"}`)
 
 	t.Logf("Execute Post ...\n")
 	do("POST", "http://manorapp.pceggs.com/IFS/Manor28/Manor28_Betting_1.ashx", buf2)
