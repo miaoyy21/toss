@@ -10,14 +10,14 @@ import (
 )
 
 var issue string
+var bets = make(map[string]struct{})
 
 func Run() error {
 	id, token := "31591499", "cbj7s576p3se6c87194kwqo1c1w2cq87sau8lc2s"
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
-	decision := 0.75
-
-	log.Printf("开始执行查询历史记录 ...\n")
+	decision := 1.1
+	power := 50 // 投注倍率：目标中奖金额为投注倍率*1000
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
@@ -51,10 +51,21 @@ func Run() error {
 	// 最新开奖期数
 	nowIssue := hisResponse.Data.Items[0].Issue
 	if strings.EqualFold(nowIssue, issue) {
-		log.Printf("本期开奖期数%q,还没到开奖时间，等待下次执行 ...\n", nowIssue)
+		log.Printf("本期开奖期数【%s】，还没到开奖时间，等待下次执行 ...\n", nowIssue)
 		return nil
 	}
 
+	// 开奖结果
+	res := hisResponse.Data.Items[0].Result
+	if len(bets) == 0 {
+		log.Printf("本期开奖期数【%s】，开奖结果【%s】 ...\n", nowIssue, res)
+	} else {
+		if _, ok := bets[res]; ok {
+			log.Printf("本期开奖期数【%s】，开奖结果【%s】，已中奖 [✓]...\n", nowIssue, res)
+		} else {
+			log.Printf("本期开奖期数【%s】，开奖结果【%s】，没有中奖 [×]...\n", nowIssue, res)
+		}
+	}
 	issue = nowIssue
 
 	spaces, target := make(map[int]int), make([]int, 0)
@@ -88,11 +99,12 @@ func Run() error {
 	}
 
 	nextIssue := strconv.Itoa(iNextIssue + 1)
-	log.Printf("下期开奖期数%q，即将投注 %#v，覆盖率 %.2f%%...\n", nextIssue, target, price/10)
+	log.Printf("下期开奖期数【%s】，覆盖率 %.2f%%，即将投注 %#v ...\n", nextIssue, price/10, target)
 
 	var total int
+	bets = make(map[string]struct{}) // 清空前一次投注结果
 	for _, result := range target {
-		gold := int(float64(10000) / float64(standard[result]))
+		gold := int(float64(1000*power) / float64(standard[result]))
 
 		betRequest := XBetRequest{
 			Issue:    nextIssue,
@@ -109,16 +121,17 @@ func Run() error {
 		var betResponse XBet
 		err := execute("GET", "http://manorapp.pceggs.com/IFS/Manor28/Manor28_Betting_1.ashx", betRequest, &betResponse)
 		if err != nil {
-			return fmt.Errorf("下期开奖期数%q，执行押注[%d]，出现错误：%s", nextIssue, result, err.Error())
+			return fmt.Errorf("下期开奖期数【%s】，执行押注[%d]，出现错误：%s", nextIssue, result, err.Error())
 		}
 
 		if betResponse.Status != 0 {
-			return fmt.Errorf("下期开奖期数%q，执行押注[%d]，服务器返回错误信息：%s", nextIssue, result, betResponse.Msg)
+			return fmt.Errorf("下期开奖期数【%s】，执行押注[%d]，服务器返回错误信息：%s", nextIssue, result, betResponse.Msg)
 		}
 
 		total = total + gold
+		bets[strconv.Itoa(result)] = struct{}{}
 	}
-	log.Printf("下期开奖期数%q，投入 %d，押注成功 >>>>>>>>>> \n", nextIssue, total)
+	log.Printf("下期开奖期数【%s】，投入 %d，押注成功 >>>>>>>>>> \n", nextIssue, total)
 
 	return nil
 }
