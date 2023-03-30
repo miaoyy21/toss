@@ -17,7 +17,7 @@ func Run() error {
 	unix, code := "1680178143", "a6748dba269e72b5ea7bb9bb7c4ee619"
 	device := "0E6EE3CC-8184-4CD7-B163-50AE8AD4516F"
 	decision := 1.1
-	power := 50 // 投注倍率：目标中奖金额为投注倍率*1000
+	power := 40 // 投注倍率：目标中奖金额为投注倍率*1000
 
 	// 查询近期历史
 	hisRequest := QHistoryRequest{
@@ -99,7 +99,7 @@ func Run() error {
 	}
 
 	nextIssue := strconv.Itoa(iNextIssue + 1)
-	log.Printf("下期开奖期数【%s】，覆盖率 %.2f%%，即将投注 %#v ...\n", nextIssue, price/10, target)
+	log.Printf("下期开奖期数【%s】，覆盖率【%.2f%%】，即将投注 %v ...\n", nextIssue, price/10, target)
 
 	var total int
 	bets = make(map[string]struct{}) // 清空前一次投注结果
