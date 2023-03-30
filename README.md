@@ -1,2 +1,2 @@
-# go-toss-coin
+# toss
 这是一个猜测抛硬币的游戏
