@@ -2,6 +2,7 @@ package toss
 
 import (
 	"fmt"
+	"log"
 	"testing"
 )
 
@@ -60,6 +61,9 @@ func oddEven(i int) Schema {
 }
 
 func TestToss(t *testing.T) {
+
+	log.Printf("%#v\n", 1+(1.5*100-100)/200)
+
 	for i, xs := range testTossMap {
 		toss := NewToss(xs.rows, xs.pattern)
 		toss.Add(xs.row)
